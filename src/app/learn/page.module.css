@@ -1,0 +1,122 @@
+.main {
+  padding: calc(var(--nav-height) + 48px) 0 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  max-width: 540px;
+  margin-bottom: 32px;
+}
+
+.header h1 {
+  margin: 8px 0 10px;
+  font-size: 2rem;
+}
+
+.header p { font-size: 0.9rem; margin: 0; }
+
+/* Track table */
+.trackList {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.trackRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-decoration: none;
+  transition: background var(--t-fast);
+  gap: 16px;
+}
+
+.trackRow:last-child { border-bottom: none; }
+
+.trackRow:not(.trackRowDisabled):hover {
+  background: var(--bg-elevated);
+}
+
+.trackRow:not(.trackRowDisabled):hover .trackArrow {
+  color: var(--yellow);
+  transform: translateX(3px);
+}
+
+.trackRowDisabled { opacity: 0.4; cursor: default; }
+
+.trackLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.trackIconWrap {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.trackEmoji { font-size: 1rem; line-height: 1; }
+
+.trackStage {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.trackName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.trackDesc {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.trackRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.trackMeta { font-size: 0.72rem; color: var(--text-muted); }
+
+.trackArrow {
+  color: var(--text-muted);
+  transition: all var(--t-base);
+}
+
+@media (max-width: 640px) {
+  .trackRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+  .trackRight {
+    width: 100%;
+    justify-content: space-between;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+}
+
+.content {
+  margin-bottom: 64px;
+}

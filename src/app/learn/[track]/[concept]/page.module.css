@@ -1,0 +1,66 @@
+.main {
+  min-height: 100vh;
+  padding-top: var(--nav-height);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+  position: sticky;
+  top: var(--nav-height);
+  z-index: 10;
+  backdrop-filter: blur(12px);
+}
+
+.breadLink {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  text-transform: capitalize;
+  font-weight: 500;
+  transition: color var(--t-fast);
+}
+
+.breadLink:hover { color: var(--text-secondary); }
+
+.breadSep {
+  color: var(--text-muted);
+  margin: 0 8px;
+  font-size: 0.75rem;
+}
+
+.breadCurrent {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Concept header */
+.conceptHeader {
+  padding: 40px 0 32px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.headerMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.conceptHeader h1 {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  margin-bottom: 8px;
+  letter-spacing: -0.03em;
+}
+
+.headerSubtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+}

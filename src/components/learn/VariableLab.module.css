@@ -1,0 +1,399 @@
+.lab {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--nav-height));
+  background: var(--bg-base);
+}
+
+.labEmbedded {
+  min-height: unset;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Lab Header */
+.labHeader {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-surface);
+}
+
+.labTitle { font-size: 1.1rem; margin: 0 0 2px; }
+.labDesc  { font-size: 0.78rem; color: var(--text-secondary); margin: 0; }
+
+.labComplete {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(62,207,142,0.08);
+  border: 1px solid rgba(62,207,142,0.2);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.labComplete span { font-size: 1.2rem; }
+.labComplete strong { display: block; color: var(--success); font-size: 0.8rem; }
+.labComplete p { font-size: 0.7rem; color: var(--text-muted); margin: 0; }
+
+/* Lab Body */
+.labBody {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Instructions */
+.instructions {
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: calc(100vh - var(--nav-height) - 64px);
+}
+
+.instructionsHeader {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  background: var(--bg-elevated);
+  z-index: 2;
+}
+
+.instructionsHeader h3 {
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.taskList {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.taskNum {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border-default);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.task p {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Hints */
+.hintsSection {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.hintsSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hintsUsed { font-size: 0.62rem; color: var(--text-muted); font-weight: 600; }
+
+.hint {
+  padding: 8px 10px;
+  background: rgba(255,221,0,0.04);
+  border: 1px solid var(--yellow-border);
+  border-radius: var(--radius-sm);
+  animation: fadeIn 0.2s ease;
+}
+
+.hintNum {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--yellow);
+  margin-bottom: 2px;
+  letter-spacing: 0.05em;
+}
+
+.hint p {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.hintActions { display: flex; gap: 6px; align-items: center; }
+
+/* Editor Pane */
+.editorPane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--code-bg);
+}
+
+.editorToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.editorFileName {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+}
+
+.fileDot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--yellow);
+}
+
+.editorActions { display: flex; gap: 6px; align-items: center; }
+
+.runBtnRunning { opacity: 0.75; }
+
+.spinner {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border: 1.5px solid rgba(0,0,0,0.3);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.editorWrapper {
+  flex: 1;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.editorLoading {
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--code-bg);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.editorLoadingSpinner {
+  width: 14px; height: 14px;
+  border: 1.5px solid var(--border-default);
+  border-top-color: var(--yellow);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Output */
+.outputSection {
+  display: flex;
+  flex-direction: column;
+  background: var(--code-bg);
+  max-height: 200px;
+}
+
+.outputTabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+}
+
+.outputTab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  font-family: var(--font-sans);
+}
+
+.outputTab:hover { color: var(--text-secondary); }
+.outputTabActive { color: var(--text-primary) !important; border-bottom-color: var(--yellow) !important; }
+
+.tabDot { flex-shrink: 0; }
+
+.outputBody { flex: 1; overflow-y: auto; font-family: var(--font-mono); font-size: 0.78rem; }
+
+.outputEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.outputEmptyIcon { font-size: 1.2rem; opacity: 0.4; }
+.outputEmpty p { font-size: 0.72rem; margin: 0; }
+
+.outputLines {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.outputLine {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  line-height: 1.7;
+}
+
+.outputLineNum {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  min-width: 16px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.outputNoOutput { color: var(--text-muted); font-size: 0.72rem; font-style: italic; }
+
+/* Error */
+.errorPanel {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.errorHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--error);
+}
+
+.errorMessage {
+  color: var(--error);
+  font-size: 0.75rem;
+  padding: 6px 10px;
+  background: var(--error-dim);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--error);
+}
+
+.errorExplanation {
+  padding: 8px 10px;
+  background: rgba(96,165,250,0.04);
+  border: 1px solid rgba(96,165,250,0.15);
+  border-radius: var(--radius-sm);
+}
+
+.errorExplanationTitle {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--info);
+  margin-bottom: 4px;
+}
+
+.errorExplanation p {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Tests */
+.testPanel {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.testSummary {
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-family: var(--font-sans);
+}
+
+.testItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+}
+
+.testPass { background: rgba(62,207,142,0.04); border-color: rgba(62,207,142,0.15); }
+.testFail { background: var(--error-dim); border-color: rgba(255,77,77,0.15); }
+
+.testIcon { font-size: 0.8rem; font-weight: 700; width: 14px; flex-shrink: 0; }
+.testPass .testIcon { color: var(--success); }
+.testFail .testIcon { color: var(--error); }
+
+.testDesc { font-size: 0.75rem; color: var(--text-secondary); }
+
+.hiddenTestNote {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 4px 10px;
+  font-family: var(--font-sans);
+}
+
+@media (max-width: 768px) {
+  .labBody { grid-template-columns: 1fr; }
+  .instructions { border-right: none; border-bottom: 1px solid var(--border-subtle); max-height: 280px; }
+  .labHeader { flex-direction: column; align-items: flex-start; }
+}
