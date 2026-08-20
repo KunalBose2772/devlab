@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
+import { getCurrentUser, logoutUser } from '@/lib/auth';
 
 const NAV_LINKS = [
   { href: '/learn',     label: 'Learn' },
@@ -15,12 +16,26 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    const checkUser = () => {
+      setUser(getCurrentUser());
+    };
+    checkUser();
+    window.addEventListener('auth-change', checkUser);
+    return () => window.removeEventListener('auth-change', checkUser);
+  }, []);
+
+  const handleSignOut = () => {
+    logoutUser();
+  };
 
   return (
     <nav className={`${styles.nav} ${scrolled ? styles.scrolled : ''}`}>
@@ -46,12 +61,28 @@ export default function Navbar() {
 
         {/* CTA */}
         <div className={styles.cta}>
-          <Link href="/login" className="btn btn-ghost btn-md" id="nav-signin">
-            Sign In
-          </Link>
-          <Link href="/register" className="btn btn-primary btn-md" id="nav-start">
-            Get Started
-          </Link>
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <img
+                src={user.avatarUrl}
+                alt={user.name}
+                style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
+              />
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{user.name}</span>
+              <button onClick={handleSignOut} className="btn btn-ghost btn-md" id="nav-signout">
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link href="/login" className="btn btn-ghost btn-md" id="nav-signin">
+                Sign In
+              </Link>
+              <Link href="/register" className="btn btn-primary btn-md" id="nav-start">
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -81,9 +112,19 @@ export default function Navbar() {
             </Link>
           ))}
           <div className={styles.mobileDivider} />
-          <Link href="/register" className="btn btn-primary btn-md" onClick={() => setMenuOpen(false)}>
-            Get Started
-          </Link>
+          {user ? (
+            <button
+              className="btn btn-secondary btn-md"
+              onClick={() => { setMenuOpen(false); handleSignOut(); }}
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              Sign Out
+            </button>
+          ) : (
+            <Link href="/register" className="btn btn-primary btn-md" onClick={() => setMenuOpen(false)} style={{ width: '100%', justifyContent: 'center' }}>
+              Get Started
+            </Link>
+          )}
         </div>
       )}
     </nav>

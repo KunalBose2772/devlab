@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Icon from '@/components/ui/Icon';
 import styles from './VariableLab.module.css';
+import { getCurrentUser } from '@/lib/auth';
+import { saveLabAttempt, getLabAttempt } from '@/lib/dataService';
 
 // Monaco Editor loaded client-side only
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -107,6 +109,31 @@ export default function VariableLab({ lab, embedded = false }) {
   const editorRef = useRef(null);
   const outputRef = useRef(null);
 
+  const [user, setUser] = useState(null);
+
+  // Load saved code when user or lab changes
+  useEffect(() => {
+    const activeUser = getCurrentUser();
+    if (activeUser && lab?.id) {
+      setUser(activeUser);
+      const attempt = getLabAttempt(activeUser.id, lab.id);
+      if (attempt) {
+        setCode(attempt.code);
+        if (attempt.testsTotal > 0) {
+          const visibleTests = lab.tests.filter((t) => !t.hidden);
+          const results = runTests(attempt.code, visibleTests);
+          setTestResults(results);
+        }
+      } else {
+        setCode(lab?.starterCode || '// Write your code here\n');
+        setTestResults(null);
+      }
+    } else {
+      setCode(lab?.starterCode || '// Write your code here\n');
+      setTestResults(null);
+    }
+  }, [lab?.id]);
+
   // Scroll to output after running
   useEffect(() => {
     if (output.length > 0 && outputRef.current) {
@@ -162,6 +189,14 @@ export default function VariableLab({ lab, embedded = false }) {
       const visibleTests = lab.tests.filter((t) => !t.hidden);
       const results = runTests(code, visibleTests);
       setTestResults(results);
+
+      // Save to mock database if user is logged in
+      const activeUser = getCurrentUser();
+      if (activeUser && lab?.id) {
+        const passingCount = results.filter((r) => r.passed).length;
+        const totalCount = results.length;
+        saveLabAttempt(activeUser.id, lab.id, code, passingCount, totalCount);
+      }
     }
   }
 

@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useRef, use } from 'react';
+import { useState, useRef, use, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Navbar from '@/components/layout/Navbar';
 import Icon from '@/components/ui/Icon';
 import styles from './page.module.css';
+import { getCurrentUser } from '@/lib/auth';
+import { getChallengeAttempt, saveChallengeAttempt } from '@/lib/dataService';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
   ssr: false,
@@ -132,6 +134,24 @@ export default function ChallengePage({ params }) {
   const [submitted, setSubmitted] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [activeTab, setActiveTab] = useState('output');
+  const [user, setUser] = useState(null);
+
+  const allTests = challenge ? [...challenge.visibleTests, ...challenge.hiddenTests] : [];
+
+  // Load user session and saved challenge
+  useEffect(() => {
+    const activeUser = getCurrentUser();
+    if (activeUser && challengeId && challenge) {
+      setUser(activeUser);
+      const attempt = getChallengeAttempt(activeUser.id, challengeId);
+      if (attempt) {
+        setCode(attempt.code);
+        const tr = allTests.map((t) => ({ ...t, passed: t.check(attempt.code) }));
+        setTestResults(tr);
+        setSubmitted(true);
+      }
+    }
+  }, [challengeId]);
 
   if (!challenge) {
     return (
@@ -144,8 +164,6 @@ export default function ChallengePage({ params }) {
       </>
     );
   }
-
-  const allTests = [...challenge.visibleTests, ...challenge.hiddenTests];
 
   async function handleRun() {
     setIsRunning(true);
@@ -160,9 +178,23 @@ export default function ChallengePage({ params }) {
   }
 
   function handleSubmit() {
-    handleRun();
+    setIsRunning(true);
+    const r = runJavaScript(code);
+    setResult(r);
+    setOutput(r.logs);
+    const tr = allTests.map((t) => ({ ...t, passed: t.check(code) }));
+    setTestResults(tr);
     setSubmitted(true);
     setActiveTab('tests');
+    setIsRunning(false);
+
+    const activeUser = getCurrentUser();
+    if (activeUser && challengeId) {
+      const passing = tr.filter((t) => t.passed).length;
+      const total = tr.length;
+      const score = total > 0 ? Math.round((passing / total) * 100) : 0;
+      saveChallengeAttempt(activeUser.id, challengeId, code, score);
+    }
   }
 
   const passing = testResults?.filter((t) => t.passed).length || 0;

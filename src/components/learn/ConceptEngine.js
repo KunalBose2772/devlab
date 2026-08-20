@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
 import styles from './ConceptEngine.module.css';
 import VariableLab from './VariableLab';
+import { getCurrentUser } from '@/lib/auth';
+import { saveConceptProgress, getConceptProgress } from '@/lib/dataService';
 
 const STEP_ICONS = {
   problem: 'question',
@@ -13,11 +15,91 @@ const STEP_ICONS = {
   connections: 'network',
 };
 
+function getStepText(step, concept) {
+  if (!step) return '';
+  let text = '';
+  
+  if (step.type === 'problem') {
+    text = `Problem. ${step.title}. ${step.content}`;
+  } else if (step.type === 'explanation') {
+    const cleanContent = step.content.replace(/```[\s\S]*?```/g, 'Code example omitted.');
+    text = `Explanation. ${step.title}. ${cleanContent}`;
+  } else if (step.type === 'connections') {
+    text = `Real-World Connections. ${step.title}. `;
+    if (step.connections) {
+      step.connections.forEach(conn => {
+        text += `For ${conn.context}, for example: ${conn.example}. `;
+      });
+    }
+  } else {
+    text = `${step.title || ''}. ${step.content || ''}`;
+  }
+  
+  return text.replace(/\*\*|\*|`/g, '');
+}
+
 export default function ConceptEngine({ concept, lab }) {
   const [activeStep, setActiveStep] = useState(0);
   const steps = concept.steps || [];
   const totalSteps = steps.length;
   const progress = totalSteps > 0 ? ((activeStep + 1) / totalSteps) * 100 : 0;
+
+  // TTS State
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [selectedVoiceGender, setSelectedVoiceGender] = useState('female');
+  const [voices, setVoices] = useState([]);
+  
+  // User Journey State
+  const [user, setUser] = useState(null);
+
+  // Load user session and saved progress
+  useEffect(() => {
+    const activeUser = getCurrentUser();
+    if (activeUser) {
+      setUser(activeUser);
+      const saved = getConceptProgress(activeUser.id, concept.slug);
+      if (saved && saved.stepsCompleted > 0) {
+        const stepIndex = Math.min(saved.stepsCompleted - 1, steps.length - 1);
+        setActiveStep(stepIndex >= 0 ? stepIndex : 0);
+      }
+    }
+  }, [concept.slug, steps.length]);
+
+  // Save progress when step changes
+  useEffect(() => {
+    if (user && concept.slug && totalSteps > 0) {
+      saveConceptProgress(user.id, concept.slug, activeStep + 1, totalSteps);
+    }
+  }, [activeStep, user, concept.slug, totalSteps]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    function loadVoices() {
+      const allVoices = window.speechSynthesis.getVoices();
+      const enVoices = allVoices.filter(v => v.lang.startsWith('en'));
+      setVoices(enVoices);
+    }
+
+    loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
+
+  // Cancel speech on step change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setIsPaused(false);
+    }
+  }, [activeStep]);
 
   function goNext() {
     if (activeStep < totalSteps - 1) setActiveStep((s) => s + 1);
@@ -27,6 +109,84 @@ export default function ConceptEngine({ concept, lab }) {
   }
 
   const step = steps[activeStep];
+
+  function handlePlayPause() {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    if (isSpeaking) {
+      if (isPaused) {
+        window.speechSynthesis.resume();
+        setIsPaused(false);
+      } else {
+        window.speechSynthesis.pause();
+        setIsPaused(true);
+      }
+      return;
+    }
+
+    const textToRead = getStepText(step, concept);
+    if (!textToRead) return;
+
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    
+    // Select the best en-IN (English India) voice matching gender
+    const enInVoices = voices.filter(v => v.lang.toLowerCase().includes('in'));
+    let chosenVoice = null;
+
+    if (selectedVoiceGender === 'female') {
+      chosenVoice = enInVoices.find(v => 
+        v.name.toLowerCase().includes('heera') || 
+        v.name.toLowerCase().includes('veena') || 
+        v.name.toLowerCase().includes('priya') || 
+        v.name.toLowerCase().includes('neerja') || 
+        v.name.toLowerCase().includes('female') ||
+        v.name.toLowerCase().includes('google')
+      );
+    } else {
+      chosenVoice = enInVoices.find(v => 
+        v.name.toLowerCase().includes('ravi') || 
+        v.name.toLowerCase().includes('prabhat') || 
+        v.name.toLowerCase().includes('male')
+      );
+    }
+
+    if (!chosenVoice && enInVoices.length > 0) {
+      chosenVoice = enInVoices[0];
+    }
+
+    if (!chosenVoice && voices.length > 0) {
+      chosenVoice = voices.find(v => v.name.toLowerCase().includes(selectedVoiceGender)) || voices[0];
+    }
+
+    if (chosenVoice) {
+      utterance.voice = chosenVoice;
+    }
+
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      setIsPaused(false);
+    };
+    
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setIsPaused(false);
+    };
+
+    setIsSpeaking(true);
+    setIsPaused(false);
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function handleStop() {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setIsPaused(false);
+    }
+  }
 
   return (
     <div className={styles.engine}>
@@ -92,8 +252,57 @@ export default function ConceptEngine({ concept, lab }) {
           </span>
         </div>
 
+        {/* TTS Player Audio Control */}
+        {step && step.type !== 'interactive' && (
+          <div className={styles.stepContent} style={{ paddingBottom: 0 }}>
+            <div className={`${styles.ttsBar} ${isSpeaking && !isPaused ? styles.ttsBarSpeaking : ''}`}>
+              <div className={styles.ttsControls}>
+                <button
+                  className={styles.ttsPlayBtn}
+                  onClick={handlePlayPause}
+                  title={isSpeaking && !isPaused ? 'Pause Speech' : 'Play Speech'}
+                >
+                  {isSpeaking && !isPaused ? '⏸' : '▶'}
+                </button>
+                {isSpeaking && (
+                  <button
+                    className={styles.ttsPlayBtn}
+                    style={{ background: 'var(--border-default)', color: 'var(--text-primary)' }}
+                    onClick={handleStop}
+                    title="Stop Speech"
+                  >
+                    ⏹
+                  </button>
+                )}
+                <select
+                  className={styles.ttsVoiceSelect}
+                  value={selectedVoiceGender}
+                  onChange={(e) => setSelectedVoiceGender(e.target.value)}
+                >
+                  <option value="female">🙋‍♀️ Indian Female Voice</option>
+                  <option value="male">🙋‍♂️ Indian Male Voice</option>
+                </select>
+              </div>
+
+              <div className={styles.ttsInfo}>
+                <div className={`${styles.ttsStatus} ${isSpeaking && !isPaused ? styles.ttsStatusActive : ''}`}>
+                  <span className={styles.ttsStatusDot} />
+                  <span>{isSpeaking ? (isPaused ? 'Paused' : 'Reading lesson...') : 'Listen to this lesson'}</span>
+                  {isSpeaking && !isPaused && (
+                    <div className={styles.ttsWave}>
+                      <div className={styles.ttsWaveBar} />
+                      <div className={styles.ttsWaveBar} />
+                      <div className={styles.ttsWaveBar} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Step Content */}
-        <div className={styles.stepContent} key={step?.id}>
+        <div className={styles.stepContent} key={step?.id} style={{ paddingTop: step && step.type !== 'interactive' ? 0 : '40px' }}>
           {step && <StepRenderer step={step} lab={lab} concept={concept} />}
         </div>
 
